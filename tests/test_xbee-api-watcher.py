@@ -5,12 +5,6 @@ from xbee_api_watcher import XbeeAPIWatcher
 
 class TestXbeeAPIWatcher(object):
 
-    def __init__(self):
-        self.mock_open = None
-        self.mock_serial = None
-        self.mock_zigbee = None
-        self.watcher = None
-
     @patch('__builtin__.open')
     @patch('xbee_api_watcher.serial')
     @patch('xbee_api_watcher.ZigBee')
