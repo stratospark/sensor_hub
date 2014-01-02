@@ -6,6 +6,7 @@ import serial
 from xbee import ZigBee
 
 from chicken_api import ChickenAPI
+import settings
 
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class XbeeAPIWatcher(object):
     def __init__(self):
-        self.FILE = open('chickens.txt', 'a')
+        self.FILE = open(settings.LOG_FILE_NAME, 'a')
         self.ser = None
         self.xbee = None
         self.last_message = None
@@ -22,7 +23,7 @@ class XbeeAPIWatcher(object):
         self._setup_serial()
 
     def _setup_serial(self):
-        self.ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=0)
+        self.ser = serial.Serial(settings.SERIAL_PORT, 9600, timeout=0)
         self.xbee = ZigBee(self.ser, escaped=True)
 
     def _process_message(self, message):

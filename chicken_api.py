@@ -1,9 +1,10 @@
 import requests
+import settings
 
 
 class ChickenAPI(object):
 
-    base_url = 'http://localhost:8000'
+    base_url = settings.API_BASE_URL
 
     @classmethod
     def add_data(cls, data_string):
