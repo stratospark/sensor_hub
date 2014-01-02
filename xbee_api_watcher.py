@@ -1,7 +1,10 @@
-import serial
 import time
-from xbee import ZigBee
+
 import logging
+
+import serial
+from xbee import ZigBee
+
 from chicken_api import ChickenAPI
 
 
