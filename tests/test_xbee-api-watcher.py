@@ -4,6 +4,13 @@ from xbee_api_watcher import XbeeAPIWatcher
 
 
 class TestXbeeAPIWatcher(object):
+
+    def __init__(self):
+        self.mock_open = None
+        self.mock_serial = None
+        self.mock_zigbee = None
+        self.watcher = None
+
     @patch('__builtin__.open')
     @patch('xbee_api_watcher.serial')
     @patch('xbee_api_watcher.ZigBee')
@@ -27,12 +34,12 @@ class TestXbeeAPIWatcher(object):
         assert self.watcher.ser.close.called
 
     @pytest.mark.timeout(1)
-    def test_start(self):
-        self.watcher.xbee.wait_read_frame.side_effect = KeyboardInterrupt()
+    @patch.object(XbeeAPIWatcher, '_process_message')
+    def test_start(self, mock_process):
+        mock_process.side_effect = KeyboardInterrupt()
 
         self.watcher.start()
         assert self.watcher.xbee.wait_read_frame.called
-
 
     @pytest.mark.timeout(1)
     @patch('xbee_api_watcher.logger')
