@@ -1,5 +1,6 @@
 from mock import patch
 import pytest
+from requests.exceptions import ConnectionError
 from xbee_api_watcher import XbeeAPIWatcher
 
 
@@ -35,11 +36,7 @@ class TestXbeeAPIWatcher(object):
         self.watcher.start()
         assert self.watcher.xbee.wait_read_frame.called
 
-    @pytest.mark.timeout(1)
-    @patch('xbee_api_watcher.logger')
-    @patch('xbee_api_watcher.time')
-    @patch('xbee_api_watcher.ChickenAPI')
-    def test_process_data_rx_and_db(self, mock_chicken_api, mock_time, mock_logger):
+    def _handle_test_messages(self, mock_time, mock_logger, data_string):
         mock_time.strftime.return_value = '2013-12-01 12:12:12'
         row = {'id': 'rx',
                'parameter': 'blah',
@@ -55,6 +52,27 @@ class TestXbeeAPIWatcher(object):
 
         self.watcher._process_message(row)
         mock_logger.info.assert_called_with('Signal Strength: -65dBm')
-        data_string = '2013-12-01 12:12:12,-65,D1,M1'
         self.watcher.FILE.write.assert_called_with('%s\r\n' % data_string)
+
+    @pytest.mark.timeout(1)
+    @patch('xbee_api_watcher.logger')
+    @patch('xbee_api_watcher.time')
+    @patch('xbee_api_watcher.ChickenAPI')
+    def test_process_data_rx_and_db(self, mock_chicken_api, mock_time, mock_logger):
+        data_string = '2013-12-01 12:12:12,-65,D1,M1'
+        self._handle_test_messages(mock_time, mock_logger, data_string)
         mock_chicken_api.add_data.assert_called_with(data_string)
+
+    @pytest.mark.timeout(1)
+    @patch('xbee_api_watcher.logger')
+    @patch('xbee_api_watcher.time')
+    @patch('xbee_api_watcher.ChickenAPI')
+    def test_process_data_rx_and_db_and_api_fails(self, mock_chicken_api, mock_time, mock_logger):
+        data_string = '2013-12-01 12:12:12,-65,D1,M1'
+
+        error = ConnectionError()
+        mock_chicken_api.add_data.side_effect = error
+
+        self._handle_test_messages(mock_time, mock_logger, data_string)
+        mock_logger.error.assert_called_with(error)
+

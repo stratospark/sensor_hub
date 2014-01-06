@@ -1,6 +1,7 @@
 import time
 
 import logging
+from requests.exceptions import ConnectionError
 
 import serial
 from xbee import ZigBee
@@ -29,7 +30,7 @@ class XbeeAPIWatcher(object):
     def _process_message(self, message):
         if message['id'] == 'rx':
             self.last_message = message
-            logger.info(time.strftime('%Y-%m-%d %H:%M:%S'))
+            logger.info(time.strftime('%Y-%m-%d %H:%M:%S')) # TODO: use a higher resolution timestamp
             self.xbee.send('at', command='DB')
             # wait for signal strength response
         elif message['id'] == 'at_response' and message['command'] == 'DB':
@@ -40,7 +41,10 @@ class XbeeAPIWatcher(object):
                                             self.last_message['rf_data'].strip('\r\n'))
             self.FILE.write('%s\r\n' % data_string)
             self.FILE.flush()
-            ChickenAPI.add_data(data_string)
+            try:
+                ChickenAPI.add_data(data_string)
+            except ConnectionError as e:
+                logger.error(e)
 
 
     def start(self):
